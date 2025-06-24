@@ -5,7 +5,7 @@ from .models import Vulnerability
 
 def scrape_nvd_vulnerabilities():
     end_date = datetime.utcnow()
-    start_date = end_date - timedelta(days=7)
+    start_date = end_date - timedelta(days=30)
 
     url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
     params = {
@@ -35,10 +35,33 @@ def scrape_nvd_vulnerabilities():
         source = cve_data.get("sourceIdentifier", "NVD")
         link = f"https://nvd.nist.gov/vuln/detail/{title}"
 
+        # Extract CVSS score/severity
+        metrics = cve_data.get("metrics", {})
+        cvss = None
+
+        if "cvssMetricV31" in metrics:
+            cvss_data = metrics["cvssMetricV31"][0]["cvssData"]
+            cvss = {
+                "score": cvss_data.get("baseScore"),
+                "severity": cvss_data.get("baseSeverity")
+            }
+        elif "cvssMetricV30" in metrics:
+            cvss_data = metrics["cvssMetricV30"][0]["cvssData"]
+            cvss = {
+                "score": cvss_data.get("baseScore"),
+                "severity": cvss_data.get("baseSeverity")
+            }
+
+        score = cvss["score"] if cvss else None
+        severity = cvss["severity"] if cvss else None
+
         if title and not Vulnerability.objects.filter(title=title).exists():
             Vulnerability.objects.create(
                 title=title,
                 source=source,
-                link=link
+                link=link,
+                score=score,
+                severity=severity
             )
-            print(f"Saved: {title}")
+            print(f"Saved: {title} | Severity: {severity} | Score: {score}")
+
