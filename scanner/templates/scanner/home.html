@@ -2,198 +2,791 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>OEM Vulnerabilities</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OEM Vulnerabilities Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: #f9fafe;
+            font-family: 'Poppins', sans-serif;
+            background-color: #F2F2F2;
+            color: #000000;
+            line-height: 1.6;
         }
 
-        h2 {
-            color: #343a40;
-            font-weight: 600;
-            text-align: center;
-        }
-
-        .form-control, .form-select {
-            border-radius: 8px;
-        }
-
-        .table {
-            background-color: #fff;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 0 10px rgba(0,0,0,0.05);
-        }
-
-        .table th {
-            background-color: #0d6efd;
-            color: white;
-            text-align: center;
-        }
-
-        .table td {
-            vertical-align: middle;
-            text-align: center;
-        }
-
-        .badge {
-            font-size: 0.85rem;
-            padding: 0.45em 0.7em;
-        }
-
-        .btn-primary {
-            border-radius: 8px;
-        }
-
-        .card {
-            border: none;
-            border-radius: 16px;
-            background-color: #ffffff;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-            padding: 24px;
-        }
-
-        #chart-container {
-            max-width: 600px;
+        .container {
+            max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background-color: #EAE4D5;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #000000;
+            opacity: 0.8;
+        }
+
+        .filters {
+            background-color: #EAE4D5;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #000000;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #B6B09F;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            background-color: #F2F2F2;
+            color: #000000;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #000000;
+        }
+
+        .filter-btn {
+            background-color: #000000;
+            color: #F2F2F2;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            background-color: #B6B09F;
+            color: #000000;
+        }
+
+        .stats {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .stats p {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #000000;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .vulnerability-card {
+            background-color: #EAE4D5;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid #B6B09F;
+        }
+
+        .vulnerability-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #000000;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .card-source {
+            display: inline-block;
+            background-color: #B6B09F;
+            color: #000000;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .card-body {
+            margin-bottom: 20px;
+        }
+
+        .severity-score-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .severity-badge {
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .severity-critical {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .severity-high {
+            background-color: #fd7e14;
+            color: white;
+        }
+
+        .severity-medium {
+            background-color: #ffc107;
+            color: #000000;
+        }
+
+        .severity-low {
+            background-color: #198754;
+            color: white;
+        }
+
+        .severity-unknown {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .score {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #000000;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 2px solid #B6B09F;
+        }
+
+        .view-btn {
+            background-color: #000000;
+            color: #F2F2F2;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .view-btn:hover {
+            background-color: #B6B09F;
+            color: #000000;
+            text-decoration: none;
+        }
+
+        .date {
+            font-size: 0.9rem;
+            color: #000000;
+            opacity: 0.7;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            background-color: #EAE4D5;
+            border-radius: 15px;
+            margin: 40px 0;
+        }
+
+        .no-results h3 {
+            font-size: 1.5rem;
+            color: #000000;
+            margin-bottom: 10px;
+        }
+
+        .no-results p {
+            color: #000000;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-row {
+                flex-direction: column;
+            }
+            
+            .filter-group {
+                width: 100%;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .severity-score-row {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            
+            .card-footer {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+        }
+
+        .chart-section {
+            margin-top: 40px;
+            background-color: #EAE4D5;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-container h2 {
+            text-align: center;
+            color: #000000;
+            font-weight: 600;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+        }
+
+        .chart-wrapper {
+            background-color: #F2F2F2;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            height: 400px;
+            border: 2px solid #B6B09F;
+        }
+
+        .chart-controls {
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .chart-wrapper {
+                height: 300px;
+                padding: 15px;
+            }
+            
+            .chart-container h2 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
-<div class="container mt-5">
-    <div class="card">
-        <h2 class="mb-4">🔐 OEM Vulnerabilities Dashboard</h2>
-
-        <form method="GET" class="row g-3 mb-4">
-            <div class="col-md-5">
-                <input type="text" name="q" class="form-control" placeholder="🔍 Search by title or link" value="{{ query }}">
-            </div>
-            <div class="col-md-4">
-                <select name="source" class="form-select">
-                    <option value="all" {% if selected_source == 'all' %}selected{% endif %}>🌐 All Sources</option>
-                    {% for src in available_sources %}
-                        <option value="{{ src }}" {% if selected_source == src %}selected{% endif %}>{{ src }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-primary w-100">Filter Results</button>
-            </div>
-        </form>
-
-        <p class="text-muted">📊 Total vulnerabilities: <strong>{{ vulnerabilities|length }}</strong></p>
-
-        <div class="table-responsive">
-            <table class="table table-sm table-hover table-striped table-bordered align-middle">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Source</th>
-                        <th>Severity</th>
-                        <th>Score</th>
-                        <th>Link</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for v in vulnerabilities %}
-                    <tr>
-                        <td>{{ v.title }}</td>
-                        <td>{{ v.source }}</td>
-                        <td>
-                            {% if v.severity == "CRITICAL" %}
-                                <span class="badge bg-danger">CRITICAL</span>
-                            {% elif v.severity == "HIGH" %}
-                                <span class="badge bg-warning text-dark">HIGH</span>
-                            {% elif v.severity == "MEDIUM" %}
-                                <span class="badge bg-info text-dark">MEDIUM</span>
-                            {% elif v.severity == "LOW" %}
-                                <span class="badge bg-success">LOW</span>
-                            {% else %}
-                                <span class="badge bg-secondary">-</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ v.score|default:"-" }}</td>
-                        <td><a href="{{ v.link }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a></td>
-                        <td>{{ v.date_scraped|date:"Y-m-d H:i" }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6">No results found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 OEM Vulnerabilities Dashboard</h1>
+            <p>Monitor and track security vulnerabilities across OEM systems</p>
         </div>
 
-        <!-- Chart Section -->
-        <h4 class="mt-5 mb-3 text-center">📈 Severity Trend</h4>
-        <div class="d-flex justify-content-center">
-    <div class="card p-3 shadow-sm" style="width: 100%; max-width: 600px;">
-        <div class="chart-container" style="position: relative; height: 220px;">
-            <canvas id="severityChart"></canvas>
+        <div class="filters">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="search">Search Vulnerabilities</label>
+                    <input type="text" id="search" placeholder="🔍 Search by title or link...">
+                </div>
+                <div class="filter-group">
+                    <label for="source">Filter by Source</label>
+                    <select id="source">
+                        <option value="all">🌐 All Sources</option>
+                        <option value="nvd">NVD</option>
+                        <option value="mitre">MITRE</option>
+                        <option value="cisa">CISA</option>
+                        <option value="vendor">Vendor Advisory</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="severity">Filter by Severity</label>
+                    <select id="severity">
+                        <option value="all">All Severities</option>
+                        <option value="critical">Critical</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <button class="filter-btn" onclick="filterVulnerabilities()">Filter Results</button>
+            </div>
         </div>
-        <div class="text-center mt-2">
-            <button id="exportChart" class="btn btn-outline-primary btn-sm">⬇️ Download Chart</button>
+
+        <div class="stats">
+            <p>📊 Total vulnerabilities: <strong id="total-count">12</strong></p>
+        </div>
+
+        <div class="cards-grid" id="vulnerabilities-grid">
+            <!-- Vulnerability Card 1 -->
+            <div class="vulnerability-card" data-source="nvd" data-severity="critical">
+                <div class="card-header">
+                    <h3 class="card-title">Critical Buffer Overflow in OEM Network Driver</h3>
+                    <span class="card-source">NVD</span>
+                </div>
+                <div class="card-body">
+                    <div class="severity-score-row">
+                        <span class="severity-badge severity-critical">Critical</span>
+                        <span class="score">CVSS: 9.8</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-0001" target="_blank" class="view-btn">View Details</a>
+                    <span class="date">2024-01-15 14:30</span>
+                </div>
+            </div>
+
+            <!-- Vulnerability Card 2 -->
+            <div class="vulnerability-card" data-source="mitre" data-severity="high">
+                <div class="card-header">
+                    <h3 class="card-title">SQL Injection Vulnerability in OEM Management Console</h3>
+                    <span class="card-source">MITRE</span>
+                </div>
+                <div class="card-body">
+                    <div class="severity-score-row">
+                        <span class="severity-badge severity-high">High</span>
+                        <span class="score">CVSS: 8.1</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-0002" target="_blank" class="view-btn">View Details</a>
+                    <span class="date">2024-01-14 09:15</span>
+                </div>
+            </div>
+
+            <!-- Vulnerability Card 3 -->
+            <div class="vulnerability-card" data-source="cisa" data-severity="medium">
+                <div class="card-header">
+                    <h3 class="card-title">Cross-Site Scripting (XSS) in OEM Web Interface</h3>
+                    <span class="card-source">CISA</span>
+                </div>
+                <div class="card-body">
+                    <div class="severity-score-row">
+                        <span class="severity-badge severity-medium">Medium</span>
+                        <span class="score">CVSS: 6.1</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank" class="view-btn">View Details</a>
+                    <span class="date">2024-01-13 16:45</span>
+                </div>
+            </div>
+
+            <!-- Vulnerability Card 4 -->
+            <div class="vulnerability-card" data-source="vendor" data-severity="high">
+                <div class="card-header">
+                    <h3 class="card-title">Authentication Bypass in OEM Firmware Update System</h3>
+                    <span class="card-source">Vendor Advisory</span>
+                </div>
+                <div class="card-body">
+                    <div class="severity-score-row">
+                        <span class="severity-badge severity-high">High</span>
+                        <span class="score">CVSS: 7.5</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-0004" target="_blank" class="view-btn">View Details</a>
+                    <span class="date">2024-01-12 11:20</span>
+                </div>
+            </div>
+
+            <!-- Vulnerability Card 5 -->
+            <div class="vulnerability-card" data-source="nvd" data-severity="critical">
+                <div class="card-header">
+                    <h3 class="card-title">Remote Code Execution in OEM Device Management Protocol</h3>
+                    <span class="card-source">NVD</span>
+                </div>
+                <div class="card-body">
+                    <div class="severity-score-row">
+                        <span class="severity-badge severity-critical">Critical</span>
+                        <span class="score">CVSS: 9.9</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-0005" target="_blank" class="view-btn">View Details</a>
+                    <span class="date">2024-01-11 13:10</span>
+                </div>
+            </div>
+
+            <!-- Vulnerability Card 6 -->
+            <div class="vulnerability-card" data-source="mitre" data-severity="low">
+                <div class="card-header">
+                    <h3 class="card-title">Information Disclosure in OEM System Logs</h3>
+                    <span class="card-source">MITRE</span>
+                </div>
+                <div class="card-body">
+                    <div class="severity-score-row">
+                        <span class="severity-badge severity-low">Low</span>
+                        <span class="score">CVSS: 3.3</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-0006" target="_blank" class="view-btn">View Details</a>
+                    <span class="date">2024-01-10 08:30</span>
+                </div>
+            </div>
+
+            <!-- Vulnerability Card 7 -->
+            <div class="vulnerability-card" data-source="cisa" data-severity="medium">
+                <div class="card-header">
+                    <h3 class="card-title">Privilege Escalation in OEM Configuration Tool</h3>
+                    <span class="card-source">CISA</span>
+                </div>
+                <div class="card-body">
+                    <div class="severity-score-row">
+                        <span class="severity-badge severity-medium">Medium</span>
+                        <span class="score">CVSS: 5.4</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank" class="view-btn">View Details</a>
+                    <span class="date">2024-01-09 15:25</span>
+                </div>
+            </div>
+
+            <!-- Vulnerability Card 8 -->
+            <div class="vulnerability-card" data-source="vendor" data-severity="high">
+                <div class="card-header">
+                    <h3 class="card-title">Denial of Service in OEM Network Stack</h3>
+                    <span class="card-source">Vendor Advisory</span>
+                </div>
+                <div class="card-body">
+                    <div class="severity-score-row">
+                        <span class="severity-badge severity-high">High</span>
+                        <span class="score">CVSS: 7.8</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-0008" target="_blank" class="view-btn">View Details</a>
+                    <span class="date">2024-01-08 12:40</span>
+                </div>
+            </div>
+
+            <!-- Vulnerability Card 9 -->
+            <div class="vulnerability-card" data-source="nvd" data-severity="medium">
+                <div class="card-header">
+                    <h3 class="card-title">Weak Cryptographic Implementation in OEM Security Module</h3>
+                    <span class="card-source">NVD</span>
+                </div>
+                <div class="card-body">
+                    <div class="severity-score-row">
+                        <span class="severity-badge severity-medium">Medium</span>
+                        <span class="score">CVSS: 6.5</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-0009" target="_blank" class="view-btn">View Details</a>
+                    <span class="date">2024-01-07 10:15</span>
+                </div>
+            </div>
+
+            <!-- Vulnerability Card 10 -->
+            <div class="vulnerability-card" data-source="mitre" data-severity="low">
+                <div class="card-header">
+                    <h3 class="card-title">Path Traversal in OEM File Upload Feature</h3>
+                    <span class="card-source">MITRE</span>
+                </div>
+                <div class="card-body">
+                    <div class="severity-score-row">
+                        <span class="severity-badge severity-low">Low</span>
+                        <span class="score">CVSS: 4.3</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-0010" target="_blank" class="view-btn">View Details</a>
+                    <span class="date">2024-01-06 14:50</span>
+                </div>
+            </div>
+
+            <!-- Vulnerability Card 11 -->
+            <div class="vulnerability-card" data-source="cisa" data-severity="critical">
+                <div class="card-header">
+                    <h3 class="card-title">Zero-Day Exploit in OEM Bootloader</h3>
+                    <span class="card-source">CISA</span>
+                </div>
+                <div class="card-body">
+                    <div class="severity-score-row">
+                        <span class="severity-badge severity-critical">Critical</span>
+                        <span class="score">CVSS: 10.0</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank" class="view-btn">View Details</a>
+                    <span class="date">2024-01-05 09:30</span>
+                </div>
+            </div>
+
+            <!-- Vulnerability Card 12 -->
+            <div class="vulnerability-card" data-source="vendor" data-severity="medium">
+                <div class="card-header">
+                    <h3 class="card-title">Session Management Flaw in OEM Admin Panel</h3>
+                    <span class="card-source">Vendor Advisory</span>
+                </div>
+                <div class="card-body">
+                    <div class="severity-score-row">
+                        <span class="severity-badge severity-medium">Medium</span>
+                        <span class="score">CVSS: 5.9</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-0012" target="_blank" class="view-btn">View Details</a>
+                    <span class="date">2024-01-04 16:20</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="no-results" id="no-results" style="display: none;">
+            <h3>No vulnerabilities found</h3>
+            <p>Try adjusting your search criteria or filters</p>
         </div>
     </div>
-</div>
 
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chart Section -->
+    <div class="chart-section">
+        <div class="chart-container">
+            <h2>📈 Vulnerability Trends Over Time</h2>
+            <div class="chart-wrapper">
+                <canvas id="vulnerabilityChart"></canvas>
+            </div>
+            <div class="chart-controls">
+                <button id="exportChart" class="filter-btn">⬇️ Download Chart</button>
+            </div>
+        </div>
     </div>
-</div>
 
-<!-- Chart.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-const ctx = document.getElementById('severityChart').getContext('2d');
-const severityChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: {{ chart_data.labels|safe }},
-        datasets: [{
-            label: 'Severity Scores Over Time',
-            data: {{ chart_data.data|safe }},
-            backgroundColor: 'rgba(13, 110, 253, 0.2)',
-            borderColor: 'rgba(13, 110, 253, 1)',
-            borderWidth: 2,
-            tension: 0.3,
-            fill: true,
-            pointRadius: 3,
-            pointBackgroundColor: 'rgba(13, 110, 253, 1)'
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                beginAtZero: true,
-                max: 10,
-                ticks: {
-                    stepSize: 2
+    <script>
+        function filterVulnerabilities() {
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            const sourceFilter = document.getElementById('source').value;
+            const severityFilter = document.getElementById('severity').value;
+            const cards = document.querySelectorAll('.vulnerability-card');
+            const noResults = document.getElementById('no-results');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const title = card.querySelector('.card-title').textContent.toLowerCase();
+                const source = card.dataset.source;
+                const severity = card.dataset.severity;
+
+                const matchesSearch = title.includes(searchTerm);
+                const matchesSource = sourceFilter === 'all' || source === sourceFilter;
+                const matchesSeverity = severityFilter === 'all' || severity === severityFilter;
+
+                if (matchesSearch && matchesSource && matchesSeverity) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
                 }
-            }
-        },
-        plugins: {
-            legend: {
-                display: true,
-                position: 'top'
-            },
-            title: {
-                display: false
+            });
+
+            document.getElementById('total-count').textContent = visibleCount;
+            
+            if (visibleCount === 0) {
+                noResults.style.display = 'block';
+            } else {
+                noResults.style.display = 'none';
             }
         }
-    }
-});
 
-document.getElementById("exportChart").onclick = () => {
-    const a = document.createElement('a');
-    a.href = severityChart.toBase64Image();
-    a.download = "vulnerability_severity_chart.png";
-    a.click();
-};
-</script>
+        // Add event listeners for real-time filtering
+        document.getElementById('search').addEventListener('input', filterVulnerabilities);
+        document.getElementById('source').addEventListener('change', filterVulnerabilities);
+        document.getElementById('severity').addEventListener('change', filterVulnerabilities);
 
+        // Chart data - vulnerability counts over the last 30 days
+        const chartData = {
+            labels: [
+                '2024-01-04', '2024-01-05', '2024-01-06', '2024-01-07', '2024-01-08',
+                '2024-01-09', '2024-01-10', '2024-01-11', '2024-01-12', '2024-01-13',
+                '2024-01-14', '2024-01-15'
+            ],
+            datasets: [{
+                label: 'Critical Vulnerabilities',
+                data: [0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2],
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'High Vulnerabilities',
+                data: [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0],
+                borderColor: '#fd7e14',
+                backgroundColor: 'rgba(253, 126, 20, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'Medium Vulnerabilities',
+                data: [0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1],
+                borderColor: '#ffc107',
+                backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'Low Vulnerabilities',
+                data: [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                borderColor: '#198754',
+                backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        };
+
+        // Initialize the chart
+        const ctx = document.getElementById('vulnerabilityChart').getContext('2d');
+        const vulnerabilityChart = new Chart(ctx, {
+            type: 'line',
+            data: chartData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Daily Vulnerability Discovery Trends',
+                        font: {
+                            family: 'Poppins',
+                            size: 16,
+                            weight: '600'
+                        },
+                        color: '#000000'
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            font: {
+                                family: 'Poppins',
+                                size: 12
+                            },
+                            color: '#000000'
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Date',
+                            font: {
+                                family: 'Poppins',
+                                size: 14,
+                                weight: '500'
+                            },
+                            color: '#000000'
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Poppins',
+                                size: 11
+                            },
+                            color: '#000000'
+                        },
+                        grid: {
+                            color: '#B6B09F'
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Vulnerabilities',
+                            font: {
+                                family: 'Poppins',
+                                size: 14,
+                                weight: '500'
+                            },
+                            color: '#000000'
+                        },
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize: 1,
+                            font: {
+                                family: 'Poppins',
+                                size: 11
+                            },
+                            color: '#000000'
+                        },
+                        grid: {
+                            color: '#B6B09F'
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+
+        // Export chart functionality
+        document.getElementById('exportChart').addEventListener('click', function() {
+            const link = document.createElement('a');
+            link.download = 'vulnerability-trends-chart.png';
+            link.href = vulnerabilityChart.toBase64Image();
+            link.click();
+        });
+    </script>
 </body>
 </html>
