@@ -53,6 +53,11 @@
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
             padding: 24px;
         }
+
+        #chart-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body>
@@ -80,7 +85,7 @@
         <p class="text-muted">📊 Total vulnerabilities: <strong>{{ vulnerabilities|length }}</strong></p>
 
         <div class="table-responsive">
-            <table class="table table-hover table-bordered align-middle">
+            <table class="table table-sm table-hover table-striped table-bordered align-middle">
                 <thead>
                     <tr>
                         <th>Title</th>
@@ -121,7 +126,74 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Chart Section -->
+        <h4 class="mt-5 mb-3 text-center">📈 Severity Trend</h4>
+        <div class="d-flex justify-content-center">
+    <div class="card p-3 shadow-sm" style="width: 100%; max-width: 600px;">
+        <div class="chart-container" style="position: relative; height: 220px;">
+            <canvas id="severityChart"></canvas>
+        </div>
+        <div class="text-center mt-2">
+            <button id="exportChart" class="btn btn-outline-primary btn-sm">⬇️ Download Chart</button>
+        </div>
     </div>
 </div>
+
+    </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('severityChart').getContext('2d');
+const severityChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: {{ chart_data.labels|safe }},
+        datasets: [{
+            label: 'Severity Scores Over Time',
+            data: {{ chart_data.data|safe }},
+            backgroundColor: 'rgba(13, 110, 253, 0.2)',
+            borderColor: 'rgba(13, 110, 253, 1)',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true,
+            pointRadius: 3,
+            pointBackgroundColor: 'rgba(13, 110, 253, 1)'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 10,
+                ticks: {
+                    stepSize: 2
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top'
+            },
+            title: {
+                display: false
+            }
+        }
+    }
+});
+
+document.getElementById("exportChart").onclick = () => {
+    const a = document.createElement('a');
+    a.href = severityChart.toBase64Image();
+    a.download = "vulnerability_severity_chart.png";
+    a.click();
+};
+</script>
+
 </body>
 </html>
