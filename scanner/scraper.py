@@ -1,8 +1,24 @@
 from datetime import datetime, timedelta
 import requests
 from scanner.utils.email_alerts import send_critical_cve_alert
-
+from scanner.utils.threat_intel import enrich_via_virustotal
 from .models import Vulnerability
+
+def enrich_with_threat_intel(cve_id):
+    url = f"https://cve.circl.lu/api/cve/{cve_id}"
+    try:
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            return {
+                "summary": data.get("summary"),
+                "cvss": data.get("cvss"),
+                "references": data.get("references", []),
+                "vulnerable_product": data.get("vulnerable_product", [])
+            }
+    except Exception as e:
+        print(f"Threat enrichment failed: {e}")
+    return {}
 
 def scrape_nvd_vulnerabilities():
     end_date = datetime.utcnow()
@@ -56,7 +72,9 @@ def scrape_nvd_vulnerabilities():
         score = cvss["score"] if cvss else None
         severity = cvss["severity"] if cvss else None
 
-        if title and not Vulnerability.objects.filter(title=title).exists():
+        exists = Vulnerability.objects.filter(title=title).exists()
+
+        if not exists:
             Vulnerability.objects.create(
                 title=title,
                 source=source,
@@ -64,8 +82,24 @@ def scrape_nvd_vulnerabilities():
                 score=score,
                 severity=severity
             )
-            print(f"Saved: {title} | Severity: {severity} | Score: {score}")
-            
-            if severity == "CRITICAL":
-                send_critical_cve_alert(title, source, link, score)
-                
+            print(f"✅ Saved new vulnerability: {title}")
+
+        # 💥 Enriched email alerts for CRITICAL vulnerabilities
+        if severity == "CRITICAL":
+            try:
+                vt = enrich_via_virustotal(title) or {}
+                vt_score = vt.get("vt_score", "N/A")
+                exploits = vt.get("exploits", [])
+
+                # Fallback summary/affected info
+                summary = f"VirusTotal risk score: {vt_score}"
+                affected = "Unknown products"
+
+                send_critical_cve_alert(
+                    title, source, link, score, summary, affected,
+                    vt_score=vt_score, exploits=exploits
+                )
+                print(f"📧 Enriched alert sent for {title} (VT score: {vt_score})")
+
+            except Exception as e:
+                print(f"⚠️ VirusTotal enrichment or alert failed for {title}: {e}")

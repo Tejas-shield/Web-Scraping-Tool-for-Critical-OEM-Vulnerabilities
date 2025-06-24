@@ -80,6 +80,17 @@ EMAIL_HOST_PASSWORD = 'eawf xepf dbgs spsn'  # Use app password, not regular one
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 ALERT_RECIPIENTS = ['alwaysteju2003@gmail.com']  # Or your own email for testing
 
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+VT_API_KEY = os.getenv("VT_API_KEY")
+
+if not VT_API_KEY:
+    print("⚠️ VT_API_KEY not set")
+
+
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
