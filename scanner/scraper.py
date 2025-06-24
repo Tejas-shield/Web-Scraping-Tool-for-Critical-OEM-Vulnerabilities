@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import requests
+from scanner.utils.email_alerts import send_critical_cve_alert
 
 from .models import Vulnerability
 
@@ -64,4 +65,7 @@ def scrape_nvd_vulnerabilities():
                 severity=severity
             )
             print(f"Saved: {title} | Severity: {severity} | Score: {score}")
-
+            
+            if severity == "CRITICAL":
+                send_critical_cve_alert(title, source, link, score)
+                

@@ -69,6 +69,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'vulnscanner.wsgi.application'
 
+# Email config using Gmail (or any SMTP)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'justteju2003@gmail.com'
+EMAIL_HOST_PASSWORD = 'eawf xepf dbgs spsn'  # Use app password, not regular one
+
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+ALERT_RECIPIENTS = ['alwaysteju2003@gmail.com']  # Or your own email for testing
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
